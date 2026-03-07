@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Paperclip, ArrowUp, Loader2, FileText, CheckCircle2, History, Settings, MessageSquare } from 'lucide-react';
+import { Paperclip, ArrowUp, Loader2, FileText, CheckCircle2, Sparkles, BookOpen, Zap } from 'lucide-react';
 import axios from 'axios';
 
 type Message = {
@@ -9,6 +9,8 @@ type Message = {
   sources?: string[];
   isLoading?: boolean;
 };
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export default function App() {
   const [file, setFile] = useState<File | null>(null);
@@ -20,6 +22,7 @@ export default function App() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-scroll chat
   useEffect(() => {
@@ -27,6 +30,14 @@ export default function App() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 192) + 'px';
+    }
+  }, [query]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -39,7 +50,6 @@ export default function App() {
       const formData = new FormData();
       formData.append('file', selected);
 
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       const res = await axios.post(`${API_URL}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -48,14 +58,14 @@ export default function App() {
       setMessages([{
         id: Date.now().toString(),
         role: 'assistant',
-        content: `I've successfully indexed **${selected.name}**. What would you like to know about it?`
+        content: `Document indexed successfully — **${selected.name}**\n\nI've analyzed the structure of your document and I'm ready to answer questions. Go ahead, ask me anything.`
       }]);
     } catch (err) {
       console.error(err);
       setMessages([{
         id: Date.now().toString(),
         role: 'assistant',
-        content: `Failed to process document. Make sure the backend is running.`
+        content: `Something went wrong while processing your document. Please make sure the backend server is running and try again.`
       }]);
       setFile(null);
     } finally {
@@ -79,7 +89,6 @@ export default function App() {
       formData.append('filename', file.name);
       formData.append('tree_path', treePath);
 
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       const res = await axios.post(`${API_URL}/api/ask`, formData);
 
       setMessages(prev => prev.map(m =>
@@ -91,7 +100,7 @@ export default function App() {
       console.error(err);
       setMessages(prev => prev.map(m =>
         m.id === loadingId
-          ? { ...m, content: "Sorry, I encountered an error while searching the document.", isLoading: false }
+          ? { ...m, content: "I encountered an error while searching. Please try again.", isLoading: false }
           : m
       ));
     }
@@ -104,142 +113,171 @@ export default function App() {
     }
   };
 
-  return (
-    <div className="flex h-screen w-full bg-[#030303] text-primary overflow-hidden font-sans selection:bg-white/20">
+  const quickActions = [
+    { icon: <BookOpen size={14} />, label: "Summarize this document" },
+    { icon: <Sparkles size={14} />, label: "Extract key concepts" },
+    { icon: <Zap size={14} />, label: "Find important definitions" },
+  ];
 
-      {/* Side Navigation (Minimalist) */}
-      <nav className="w-16 h-full border-r border-border/40 flex flex-col items-center py-6 gap-8 shrink-0 z-10 bg-transparent">
-        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
-          <span className="text-black font-bold text-lg leading-none mt-[-2px]">◓</span>
+  const handleQuickAction = (action: string) => {
+    if (!file || !treePath) return;
+    setQuery(action);
+    setTimeout(() => handleSend(), 100);
+  };
+
+  return (
+    <div className="flex flex-col h-[100dvh] w-full bg-[#030303] text-white overflow-hidden" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+
+      {/* Header */}
+      <header className="shrink-0 flex items-center justify-between px-4 sm:px-8 h-14 sm:h-16 border-b border-white/[0.06] z-20">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
+            <Sparkles size={14} className="text-white" />
+          </div>
+          <h1 className="text-base sm:text-lg font-semibold tracking-tight">Cortex</h1>
+          <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-white/[0.06] text-[10px] font-medium text-white/50 border border-white/[0.06] tracking-wide">BETA</span>
         </div>
-        <div className="flex flex-col items-center gap-6 mt-4 opacity-60">
-          <button className="hover:opacity-100 hover:text-white transition-all"><MessageSquare size={20} className="stroke-[1.5]" /></button>
-          <button className="hover:opacity-100 hover:text-white transition-all"><History size={20} className="stroke-[1.5]" /></button>
-          <button className="hover:opacity-100 hover:text-white transition-all"><Settings size={20} className="stroke-[1.5]" /></button>
-        </div>
-      </nav>
+
+        {/* File status in header on mobile */}
+        {file && (
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+            {isUploading ? <Loader2 size={12} className="animate-spin text-violet-400" /> : <CheckCircle2 size={12} className="text-emerald-400" />}
+            <span className="text-xs text-white/60 truncate max-w-[120px] sm:max-w-[200px]">{file.name}</span>
+          </div>
+        )}
+      </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col relative">
-
-        {/* Top Header */}
-        <header className="absolute top-0 left-0 right-0 h-16 flex items-center justify-between px-8 z-10 pointer-events-none">
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg font-medium tracking-tight opacity-90 pointer-events-auto">PageIndex</h1>
-            <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs font-medium text-white/70 border border-white/5 pointer-events-auto">Beta</span>
-          </div>
-        </header>
+      <main className="flex-1 flex flex-col items-center w-full overflow-hidden">
 
         {/* Chat / Hero Area */}
-        <div className="flex-1 flex flex-col items-center w-full px-4 overflow-hidden pt-20">
+        <div className="flex-1 flex flex-col items-center w-full px-4 sm:px-6 overflow-hidden">
 
           {messages.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center w-full max-w-3xl animate-fade-in -mt-20">
-              <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-center mb-12 opacity-90">
+            <div className="flex-1 flex flex-col items-center justify-center w-full max-w-2xl animate-fade-in">
+
+              {/* Hero */}
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-indigo-600/20 border border-violet-500/20 flex items-center justify-center mb-6 sm:mb-8 shadow-2xl shadow-violet-500/10">
+                <Sparkles size={24} className="text-violet-400" />
+              </div>
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-center mb-3 sm:mb-4 bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">
                 What do you want to know?
               </h2>
+              <p className="text-sm sm:text-base text-white/40 text-center mb-8 sm:mb-12 max-w-md px-4">
+                Upload a document and ask anything. Cortex will intelligently search your content to find the answer.
+              </p>
+
+              {/* Quick Actions */}
+              {!file && (
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto px-4 sm:px-0">
+                  {quickActions.map((action, i) => (
+                    <button
+                      key={i}
+                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-sm text-white/50 hover:text-white/80 hover:bg-white/[0.06] hover:border-white/[0.12] cursor-default transition-all duration-200 flex items-center gap-2 justify-center"
+                    >
+                      {action.icon}
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div
               ref={scrollRef}
-              className="flex-1 w-full max-w-3xl overflow-y-auto no-scrollbar pb-8 pt-4 space-y-8 scroll-smooth"
+              className="flex-1 w-full max-w-2xl overflow-y-auto pb-4 pt-6 space-y-6 scroll-smooth"
+              style={{ scrollbarWidth: 'none' }}
             >
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex w-full animate-fade-in ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   {msg.role === 'user' ? (
-                    <div className="bg-surfaceHover max-w-[85%] px-5 py-3.5 rounded-2xl rounded-tr-sm text-[15px] leading-relaxed border border-border/50 shadow-sm">
+                    <div className="max-w-[85%] sm:max-w-[75%] px-4 py-3 rounded-2xl rounded-tr-md text-[14px] sm:text-[15px] leading-relaxed bg-violet-600/20 border border-violet-500/20 text-white/90">
                       {msg.content}
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-2 max-w-[95%]">
-                      {msg.isLoading ? (
-                        <div className="flex items-center gap-3 text-secondary py-2">
-                          <Loader2 size={16} className="animate-spin" />
-                          <span className="text-sm font-medium">Scanning document structure...</span>
-                        </div>
-                      ) : (
-                        <div className="text-[15px] leading-relaxed opacity-90 prose prose-invert max-w-none">
-                          <p className="whitespace-pre-wrap">{msg.content}</p>
-                          {msg.sources && msg.sources.length > 0 && (
-                            <div className="mt-4 pt-3 border-t border-border/50 flex flex-wrap gap-2">
-                              {msg.sources.map((s, i) => (
-                                <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-xs text-secondary">
-                                  <FileText size={12} /> {s}
-                                </span>
-                              ))}
+                    <div className="flex gap-3 max-w-[95%] sm:max-w-[85%]">
+                      <div className="shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-violet-500/30 to-indigo-600/30 border border-violet-500/20 flex items-center justify-center mt-0.5">
+                        <Sparkles size={12} className="text-violet-400" />
+                      </div>
+                      <div className="flex flex-col gap-2 min-w-0">
+                        {msg.isLoading ? (
+                          <div className="flex items-center gap-2.5 py-2">
+                            <div className="flex gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
                             </div>
-                          )}
-                        </div>
-                      )}
+                            <span className="text-xs sm:text-sm text-white/40">Analyzing document...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="text-[14px] sm:text-[15px] leading-relaxed text-white/85">
+                              <p className="whitespace-pre-wrap">{msg.content}</p>
+                            </div>
+                            {msg.sources && msg.sources.length > 0 && (
+                              <div className="mt-2 pt-2.5 border-t border-white/[0.06] flex flex-wrap gap-1.5">
+                                {msg.sources.map((s, i) => (
+                                  <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-[11px] text-white/40">
+                                    <FileText size={10} /> {s}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
               ))}
             </div>
           )}
+        </div>
 
-          {/* Input Area (Variant 2 style) */}
-          <div className="w-full max-w-3xl pb-8 pt-2">
+        {/* Input Area — Always at bottom */}
+        <div className="shrink-0 w-full max-w-2xl px-4 sm:px-6 pb-4 sm:pb-6 pt-2">
 
-            {/* Context Chips (if empty) */}
-            {messages.length === 0 && !file && (
-              <div className="flex items-center justify-center gap-3 mb-6 animate-fade-in delay-100">
-                <span className="px-4 py-2 rounded-full border border-border/60 bg-surface/30 text-sm text-secondary hover:text-white cursor-pointer transition-colors backdrop-blur-sm">Summarize key points</span>
-                <span className="px-4 py-2 rounded-full border border-border/60 bg-surface/30 text-sm text-secondary hover:text-white cursor-pointer transition-colors backdrop-blur-sm">Extract main arguments</span>
-              </div>
-            )}
+          {/* Search Bar Container */}
+          <div className="rounded-2xl w-full p-1.5 sm:p-2 flex items-end bg-white/[0.04] border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.4)] transition-all duration-300 focus-within:border-violet-500/30 focus-within:shadow-[0_8px_40px_rgba(139,92,246,0.08)]">
 
-            {/* Attached File Indicator */}
-            {file && (
-              <div className="mb-3 flex items-center gap-2 animate-fade-in px-2">
-                <div className="px-3 py-1.5 rounded-lg bg-surfaceHover border border-border flex items-center gap-2 text-sm text-secondary shadow-sm">
-                  {isUploading ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} className="text-emerald-500" />}
-                  <span className="truncate max-w-[200px] font-medium">{file.name}</span>
-                </div>
-              </div>
-            )}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2.5 sm:p-3 text-white/30 hover:text-white/70 hover:bg-white/[0.04] rounded-xl transition-all shrink-0"
+              title="Attach Document"
+            >
+              <Paperclip size={18} className="stroke-[1.5]" />
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept=".md,.pdf"
+              className="hidden"
+            />
 
-            {/* Search Bar Container */}
-            <div className="glass rounded-2xl w-full p-2 flex items-end shadow-[0_8px_30px_rgb(0,0,0,0.5)] transition-all duration-300 focus-within:ring-1 focus-within:ring-white/20">
+            <textarea
+              ref={textareaRef}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={file ? "Ask a question about your document..." : "Attach a document to get started"}
+              disabled={!file || isUploading}
+              className="flex-1 max-h-48 min-h-[40px] sm:min-h-[44px] bg-transparent border-none outline-none resize-none pt-2.5 sm:pt-3 pb-2.5 sm:pb-3 px-1 sm:px-2 text-[14px] sm:text-[15px] text-white/90 placeholder:text-white/20 disabled:opacity-40"
+              rows={1}
+            />
 
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="p-3 text-secondary hover:text-white hover:bg-white/5 rounded-xl transition-colors shrink-0"
-                title="Attach Document"
-              >
-                <Paperclip size={20} className="stroke-[1.5]" />
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept=".md,.pdf"
-                className="hidden"
-              />
-
-              <textarea
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={file ? "Ask a question..." : "Attach a document to get started"}
-                disabled={!file || isUploading}
-                className="flex-1 max-h-48 min-h-[44px] bg-transparent border-none outline-none resize-none pt-3 pb-3 px-2 text-[15px] placeholder:text-secondary disabled:opacity-50"
-                rows={1}
-              />
-
-              <button
-                onClick={handleSend}
-                disabled={!query.trim() || !treePath || isUploading}
-                className="p-3 ml-2 bg-white text-black hover:bg-primaryHover disabled:opacity-20 disabled:hover:bg-white rounded-xl transition-all shrink-0 font-medium shadow-sm"
-              >
-                <ArrowUp size={20} className="stroke-2" />
-              </button>
-            </div>
-
-            <p className="text-center text-xs text-secondary/60 mt-4 tracking-wide">
-              Powering vectorless RAG with PageIndex and Groq.
-            </p>
+            <button
+              onClick={handleSend}
+              disabled={!query.trim() || !treePath || isUploading}
+              className="p-2.5 sm:p-3 ml-1 bg-violet-600 hover:bg-violet-500 text-white disabled:opacity-15 disabled:hover:bg-violet-600 rounded-xl transition-all shrink-0 shadow-lg shadow-violet-600/20"
+            >
+              <ArrowUp size={18} className="stroke-2" />
+            </button>
           </div>
+
+          <p className="text-center text-[10px] sm:text-xs text-white/20 mt-3 sm:mt-4 tracking-wide">
+            Powered by PageIndex · Built by <span className="text-white/30 font-medium">Saini</span>
+          </p>
         </div>
       </main>
     </div>
