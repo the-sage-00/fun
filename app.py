@@ -5,6 +5,9 @@ import shutil
 from pageindex.utils import count_tokens # to verify it works
 import subprocess
 import json
+import threading
+import time
+import urllib.request
 
 app = FastAPI()
 
@@ -20,6 +23,34 @@ UPLOAD_DIR = "uploads"
 RESULTS_DIR = "results"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(RESULTS_DIR, exist_ok=True)
+
+# ── Keep-Alive Ping ───────────────────────────────────────────
+# Render free tier sleeps after ~10 min of inactivity.
+# This background thread self-pings every 9 minutes to stay awake.
+
+def keep_alive():
+    """Ping our own /health endpoint every 9 minutes."""
+    render_url = os.environ.get("RENDER_EXTERNAL_URL")  # Render sets this automatically
+    if not render_url:
+        print("[keep-alive] RENDER_EXTERNAL_URL not set, skipping keep-alive (local dev).")
+        return
+    health_url = f"{render_url}/health"
+    print(f"[keep-alive] Started. Will ping {health_url} every 9 minutes.")
+    while True:
+        time.sleep(9 * 60)  # 9 minutes
+        try:
+            urllib.request.urlopen(health_url, timeout=10)
+            print("[keep-alive] Ping successful.")
+        except Exception as e:
+            print(f"[keep-alive] Ping failed: {e}")
+
+# Start keep-alive in a daemon thread (dies when main process exits)
+threading.Thread(target=keep_alive, daemon=True).start()
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint used by keep-alive and monitoring."""
+    return {"status": "ok"}
 
 @app.post("/api/upload")
 async def upload_document(file: UploadFile = File(...)):
