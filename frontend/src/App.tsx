@@ -119,11 +119,7 @@ export default function App() {
     { icon: <Zap size={14} />, label: "Find important definitions" },
   ];
 
-  const handleQuickAction = (action: string) => {
-    if (!file || !treePath) return;
-    setQuery(action);
-    setTimeout(() => handleSend(), 100);
-  };
+
 
   return (
     <div className="flex flex-col h-[100dvh] w-full bg-[#030303] text-white overflow-hidden" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
