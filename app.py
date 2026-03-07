@@ -1,0 +1,94 @@
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+import os
+import shutil
+from pageindex.utils import count_tokens # to verify it works
+import subprocess
+import json
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for local dev
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+UPLOAD_DIR = "uploads"
+RESULTS_DIR = "results"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(RESULTS_DIR, exist_ok=True)
+
+@app.post("/api/upload")
+async def upload_document(file: UploadFile = File(...)):
+    """Uploads a document (MD or PDF) and runs run_pageindex.py on it."""
+    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    # Run the tree generation script
+    # Figure out if it's pdf or md
+    ext = os.path.splitext(file.filename)[1].lower()
+    command = ["python", "run_pageindex.py"]
+    if ext == ".md":
+        command.extend(["--md_path", file_path])
+    elif ext == ".pdf":
+        command.extend(["--pdf_path", file_path])
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported file format. Please upload .md or .pdf.")
+        
+    try:
+        # We don't want to wait forever, but we need it to finish
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        stdout, stderr = process.communicate()
+        
+        if process.returncode != 0:
+            print("Error running pageindex:", stderr)
+            raise HTTPException(status_code=500, detail="Failed to process document")
+            
+        tree_filename = os.path.splitext(file.filename)[0] + "_structure.json"
+        tree_path = os.path.join(RESULTS_DIR, tree_filename)
+        
+        if not os.path.exists(tree_path):
+             # Try fallback if RESULTS_DIR is different in run_pageindex
+             if os.path.exists(os.path.join("results", tree_filename)):
+                 tree_path = os.path.join("results", tree_filename)
+             else:
+                 raise HTTPException(status_code=500, detail="Tree structure was not generated.")
+                 
+        return {"filename": file.filename, "tree_path": tree_path, "status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+from ask_question import retrieve_relevant_sections, answer_question, load_tree, load_document
+
+@app.post("/api/ask")
+async def ask_question_api(question: str = Form(...), filename: str = Form(...), tree_path: str = Form(...)):
+    """Asks a question against the processed document."""
+    try:
+        file_path = os.path.join(UPLOAD_DIR, filename)
+        if not os.path.exists(file_path) and not os.path.exists(filename): # fallback to local dir
+             file_path = filename
+
+        tree = load_tree(tree_path)
+        doc_content = load_document(file_path)
+        
+        # Use our groq model
+        model = "llama-3.3-70b-versatile"
+        context, titles, _ = retrieve_relevant_sections(question, tree, doc_content, model)
+        
+        if not context.strip():
+            return {"answer": "I couldn't find relevant sections for this question.", "sources": []}
+            
+        answer = answer_question(question, context, model)
+        return {"answer": answer, "sources": titles}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,0 +1,283 @@
+{
+  "doc_name": "01_CHAPTER2_RELATIONAL_MODEL - Copy",
+  "structure": [
+    {
+      "title": "📘 Chapter 2: Introduction to Relational Model",
+      "node_id": "0000",
+      "prefix_summary": "# 📘 Chapter 2: Introduction to Relational Model",
+      "line_num": 1,
+      "nodes": [
+        {
+          "title": "🎯 What You'll Learn in This Chapter",
+          "node_id": "0001",
+          "summary": "## 🎯 What You'll Learn in This Chapter\n\nThis chapter teaches you the **foundation** of how databases store and organize data. Think of it as learning the \"grammar\" before writing sentences!\n\n**Key Topics:**\n1. Structure of Relational Databases\n2. Database Schema vs Instance\n3. Keys (Super Key, Candidate Key, Primary Key, Foreign Key)\n4. Schema Diagrams\n5. Relational Query Languages\n6. Relational Algebra Operations\n\n---",
+          "line_num": 3
+        },
+        {
+          "title": "1️⃣ Structure of Relational Databases",
+          "node_id": "0002",
+          "prefix_summary": "## 1️⃣ Structure of Relational Databases",
+          "line_num": 17,
+          "nodes": [
+            {
+              "title": "What is a Relation?",
+              "node_id": "0003",
+              "summary": "### What is a Relation?\n\n💡 **KEY CONCEPT**: A **relation** is simply a **table**!\n\nIn everyday language:\n| Database Term | Simple Term |\n|---------------|-------------|\n| Relation | Table |\n| Tuple | Row |\n| Attribute | Column |\n| Domain | Allowed values for a column |",
+              "line_num": 19
+            },
+            {
+              "title": "Example: instructor Relation",
+              "node_id": "0004",
+              "summary": "Error",
+              "line_num": 31
+            },
+            {
+              "title": "Important Terms:",
+              "node_id": "0005",
+              "summary": "### Important Terms:\n\n**1. Attribute (Column)**\n- Each column has a name\n- Example: `ID`, `name`, `dept_name`, `salary`\n\n**2. Domain**\n- Set of allowed values for an attribute\n- Example: Domain of `salary` = all positive numbers\n- Example: Domain of `dept_name` = {Comp. Sci., Finance, Music, Physics, ...}\n\n**3. Tuple (Row)**\n- One complete record in the table\n- Example: `(10101, Srinivasan, Comp. Sci., 65000)` is one tuple\n\n**4. Relation Instance**\n- The current data in the table (snapshot at a point in time)\n- Data can change (rows added, deleted, updated)",
+              "line_num": 53
+            },
+            {
+              "title": "⚠️ EXAM TIP: Atomic Values",
+              "node_id": "0006",
+              "summary": "### ⚠️ EXAM TIP: Atomic Values\n\n> **Rule**: All attribute values must be **atomic** (indivisible)\n\n**❌ Wrong (Not Atomic):**\n```\nphone_numbers = \"9876543210, 8765432109\"   ← Multiple values in one field\n```\n\n**✅ Correct (Atomic):**\n```\nphone_number_1 = \"9876543210\"\nphone_number_2 = \"8765432109\"\n```\n\nOr use a separate table for phone numbers!\n\n---",
+              "line_num": 72
+            }
+          ]
+        },
+        {
+          "title": "2️⃣ Database Schema vs Database Instance",
+          "node_id": "0007",
+          "prefix_summary": "## 2️⃣ Database Schema vs Database Instance",
+          "line_num": 91,
+          "nodes": [
+            {
+              "title": "💡 KEY CONCEPT: Schema = Structure, Instance = Data",
+              "node_id": "0008",
+              "summary": "### 💡 KEY CONCEPT: Schema = Structure, Instance = Data\n\n| Concept | Description | Changes? | Example |\n|---------|-------------|----------|---------|\n| **Schema** | Design/Structure of database | Rarely | Table names, column names, data types |\n| **Instance** | Actual data at a moment | Frequently | The rows in the table |",
+              "line_num": 93
+            },
+            {
+              "title": "Real-World Analogy:",
+              "node_id": "0009",
+              "summary": "### Real-World Analogy:\n```\nSchema = Blueprint of a house 🏠\n         (shows rooms, doors, windows)\n         \nInstance = Furniture inside the house 🛋️\n           (can be changed any time)\n```",
+              "line_num": 100
+            },
+            {
+              "title": "Example:",
+              "node_id": "0010",
+              "summary": "### Example:\n\n**Schema of instructor:**\n```\ninstructor(ID, name, dept_name, salary)\n    ↑      ↑     ↑        ↑         ↑\n Table   Columns with their names\n```\n\n**Instance of instructor** (current data):\n```\n{(10101, Srinivasan, Comp. Sci., 65000),\n (12121, Wu, Finance, 90000),\n (15151, Mozart, Music, 40000), ...}\n```\n\n---",
+              "line_num": 109
+            }
+          ]
+        },
+        {
+          "title": "3️⃣ Keys - Most Important Topic! 🔑",
+          "node_id": "0011",
+          "prefix_summary": "## 3️⃣ Keys - Most Important Topic! 🔑",
+          "line_num": 127,
+          "nodes": [
+            {
+              "title": "⚠️ EXAM TIP: Keys are asked in EVERY exam!",
+              "node_id": "0012",
+              "summary": "### ⚠️ EXAM TIP: Keys are asked in EVERY exam!",
+              "line_num": 129
+            },
+            {
+              "title": "Types of Keys:",
+              "node_id": "0013",
+              "summary": "Error",
+              "line_num": 131
+            },
+            {
+              "title": "1. Super Key",
+              "node_id": "0014",
+              "summary": "### 1. Super Key\n\n**Definition**: Any set of attributes that can uniquely identify a tuple.\n\n**Example for `instructor` table:**\n- `{ID}` → Super Key ✅\n- `{ID, name}` → Super Key ✅\n- `{ID, name, salary}` → Super Key ✅\n- `{name}` → NOT Super Key ❌ (two instructors can have same name)",
+              "line_num": 158
+            },
+            {
+              "title": "2. Candidate Key",
+              "node_id": "0015",
+              "summary": "### 2. Candidate Key\n\n💡 **KEY CONCEPT**: A candidate key is a **minimal** super key (no extra attributes).\n\n**Example:**\n- `{ID}` → Candidate Key ✅ (minimal)\n- `{ID, name}` → NOT Candidate Key ❌ (name is extra, ID alone is enough)\n\n**More Examples:**\n\nFor a `student` table with columns: `(student_id, aadhar_number, name, email)`:\n- `{student_id}` → Candidate Key (unique for each student)\n- `{aadhar_number}` → Candidate Key (unique for each person)\n- `{email}` → Candidate Key (assuming unique emails)\n- `{name}` → NOT Candidate Key (names can repeat)",
+              "line_num": 168
+            },
+            {
+              "title": "3. Primary Key",
+              "node_id": "0016",
+              "summary": "### 3. Primary Key\n\n💡 **KEY CONCEPT**: One candidate key chosen as the main identifier.\n\n**Rules for Primary Key:**\n1. Must be unique for each row\n2. Cannot be NULL\n3. Should not change frequently\n4. Only ONE primary key per table\n\n**Example:**\n```sql\ninstructor(ID, name, dept_name, salary)\n           ↑\n        Primary Key (underlined in schema diagrams)\n```",
+              "line_num": 184
+            },
+            {
+              "title": "4. Foreign Key",
+              "node_id": "0017",
+              "summary": "Error",
+              "line_num": 201
+            },
+            {
+              "title": "5. Referential Integrity",
+              "node_id": "0018",
+              "summary": "### 5. Referential Integrity\n\n💡 **KEY CONCEPT**: If a foreign key value appears in a table, it MUST exist in the referenced table.\n\n**Example:**\n```sql\n-- This will FAIL if 'Chemistry' department doesn't exist:\nINSERT INTO instructor VALUES ('99999', 'Newton', 'Chemistry', 80000);\n-- Error: Chemistry not found in department table!\n```\n\n---",
+              "line_num": 226
+            }
+          ]
+        },
+        {
+          "title": "4️⃣ Schema Diagrams",
+          "node_id": "0019",
+          "prefix_summary": "## 4️⃣ Schema Diagrams",
+          "line_num": 239,
+          "nodes": [
+            {
+              "title": "What is a Schema Diagram?",
+              "node_id": "0020",
+              "summary": "### What is a Schema Diagram?\n\nA visual representation showing:\n- All tables (relations)\n- All attributes (columns)\n- Primary keys (underlined)\n- Foreign key relationships (arrows)",
+              "line_num": 241
+            },
+            {
+              "title": "University Database Schema Diagram:",
+              "node_id": "0021",
+              "summary": "Error",
+              "line_num": 249
+            },
+            {
+              "title": "Convention:",
+              "node_id": "0022",
+              "summary": "### Convention: \n- **Underlined** attributes = Primary Key\n- **Arrows** = Foreign Key relationships (from FK to PK)\n\n---",
+              "line_num": 306
+            }
+          ]
+        },
+        {
+          "title": "5️⃣ Relational Query Languages",
+          "node_id": "0023",
+          "prefix_summary": "## 5️⃣ Relational Query Languages",
+          "line_num": 312,
+          "nodes": [
+            {
+              "title": "Types of Query Languages:",
+              "node_id": "0024",
+              "summary": "### Types of Query Languages:\n\n```\n                Query Languages\n                      │\n        ┌─────────────┼─────────────┐\n        ↓             ↓             ↓\n   Procedural    Declarative    Mixed\n        │             │             │\n        ↓             ↓             ↓\n  Relational       SQL          SQL has\n   Algebra                     both aspects\n```",
+              "line_num": 314
+            },
+            {
+              "title": "Procedural vs Declarative",
+              "node_id": "0025",
+              "summary": "### Procedural vs Declarative\n\n| Type | Description | Example |\n|------|-------------|---------|\n| **Procedural** | You specify HOW to get data | Relational Algebra |\n| **Declarative** | You specify WHAT data you want | SQL |\n\n**Analogy:**\n```\nProcedural (How):\n\"Go to the fridge, open it, look at the second shelf, \npick the red bottle, close the fridge, bring it to me\"\n\nDeclarative (What):\n\"Bring me the ketchup\"\n```\n\n---",
+              "line_num": 328
+            }
+          ]
+        },
+        {
+          "title": "6️⃣ Relational Algebra - Very Important! 📐",
+          "node_id": "0026",
+          "prefix_summary": "## 6️⃣ Relational Algebra - Very Important! 📐",
+          "line_num": 347,
+          "nodes": [
+            {
+              "title": "⚠️ EXAM TIP: Relational Algebra is asked in almost every competitive exam!",
+              "node_id": "0027",
+              "summary": "### ⚠️ EXAM TIP: Relational Algebra is asked in almost every competitive exam!\n\nRelational Algebra is a set of operations on relations (tables) that produce new relations.",
+              "line_num": 349
+            },
+            {
+              "title": "Basic Operations:",
+              "node_id": "0028",
+              "summary": "### Basic Operations:\n\n| Operation | Symbol | Description |\n|-----------|--------|-------------|\n| Select | σ (sigma) | Filter rows |\n| Project | π (pi) | Choose columns |\n| Union | ∪ | Combine rows from two tables |\n| Set Difference | − | Rows in first but not in second |\n| Cartesian Product | × | All combinations of rows |\n| Rename | ρ (rho) | Rename table or columns |",
+              "line_num": 353
+            },
+            {
+              "title": "Additional Operations:",
+              "node_id": "0029",
+              "summary": "### Additional Operations:\n\n| Operation | Symbol | Description |\n|-----------|--------|-------------|\n| Natural Join | ⋈ | Join tables on common columns |\n| Intersection | ∩ | Common rows in both tables |\n| Division | ÷ | Complex operation for \"all\" queries |\n| Assignment | ← | Store result in temporary variable |\n\n---",
+              "line_num": 364
+            },
+            {
+              "title": "1. SELECT Operation (σ)",
+              "node_id": "0030",
+              "summary": "Error",
+              "line_num": 375
+            },
+            {
+              "title": "2. PROJECT Operation (π)",
+              "node_id": "0031",
+              "summary": "### 2. PROJECT Operation (π)\n\n💡 **KEY CONCEPT**: PROJECT chooses **columns** to display.\n\n**Syntax:** `π attribute_list (relation)`\n\n📝 **NOTE**: Duplicate rows are automatically removed in PROJECT!\n\n**Example 1:** Get only names of all instructors\n\n```\nπ name (instructor)\n```\n\n**Result:**\n| name |\n|------|\n| Srinivasan |\n| Wu |\n| Mozart |\n| Einstein |\n| Katz |\n\n**Example 2:** Get name and salary of instructors\n\n```\nπ name, salary (instructor)\n```\n\n**Result:**\n| name | salary |\n|------|--------|\n| Srinivasan | 65000 |\n| Wu | 90000 |\n| Mozart | 40000 |\n| Einstein | 95000 |\n| Katz | 75000 |\n\n---",
+              "line_num": 417
+            },
+            {
+              "title": "3. Combining SELECT and PROJECT",
+              "node_id": "0032",
+              "summary": "### 3. Combining SELECT and PROJECT\n\n**Example:** Find names of instructors in Physics department\n\n```\nπ name (σ dept_name = \"Physics\" (instructor))\n```\n\n**Step-by-step execution:**\n\nStep 1: Apply SELECT\n```\nσ dept_name = \"Physics\" (instructor)\n```\n| ID | name | dept_name | salary |\n|----|------|-----------|--------|\n| 22222 | Einstein | Physics | 95000 |\n\nStep 2: Apply PROJECT\n```\nπ name (above result)\n```\n| name |\n|------|\n| Einstein |\n\n---",
+              "line_num": 457
+            },
+            {
+              "title": "4. UNION Operation (∪)",
+              "node_id": "0033",
+              "summary": "### 4. UNION Operation (∪)\n\n💡 **KEY CONCEPT**: Combines rows from two relations.\n\n**Rules:**\n1. Both relations must have same number of columns\n2. Columns must have compatible data types\n3. Duplicate rows are removed\n\n**Syntax:** `relation1 ∪ relation2`\n\n**Example:** Find all courses taught in Fall 2017 OR Spring 2018\n\n```\nπ course_id (σ semester = \"Fall\" ∧ year = 2017 (section))\n∪\nπ course_id (σ semester = \"Spring\" ∧ year = 2018 (section))\n```\n\n---",
+              "line_num": 485
+            },
+            {
+              "title": "5. SET DIFFERENCE Operation (−)",
+              "node_id": "0034",
+              "summary": "### 5. SET DIFFERENCE Operation (−)\n\n💡 **KEY CONCEPT**: Rows in first relation but NOT in second.\n\n**Syntax:** `relation1 − relation2`\n\n**Example:** Find courses taught in Fall 2017 but NOT in Spring 2018\n\n```\nπ course_id (σ semester = \"Fall\" ∧ year = 2017 (section))\n−\nπ course_id (σ semester = \"Spring\" ∧ year = 2018 (section))\n```\n\n---",
+              "line_num": 506
+            },
+            {
+              "title": "6. CARTESIAN PRODUCT (×)",
+              "node_id": "0035",
+              "summary": "### 6. CARTESIAN PRODUCT (×)\n\n💡 **KEY CONCEPT**: Combines every row of first table with every row of second table.\n\n**Syntax:** `relation1 × relation2`\n\n📝 **NOTE**: If table A has 5 rows and table B has 10 rows, result has 5 × 10 = 50 rows!\n\n**Example:**\n```\ninstructor × teaches\n```\n\nThis gives all possible combinations, but most don't make sense! That's why we need JOIN.\n\n---",
+              "line_num": 522
+            },
+            {
+              "title": "7. RENAME Operation (ρ)",
+              "node_id": "0036",
+              "summary": "### 7. RENAME Operation (ρ)\n\n**Syntax:** `ρ new_name (old_name)` or `ρ new_name(attr1, attr2, ...) (relation)`\n\n**Example:** Rename instructor table to \"teacher\"\n```\nρ teacher (instructor)\n```\n\n---",
+              "line_num": 539
+            },
+            {
+              "title": "8. NATURAL JOIN (⋈)",
+              "node_id": "0037",
+              "summary": "### 8. NATURAL JOIN (⋈)\n\n🎯 **PLACEMENT TIP**: JOINs are the most asked topic in interviews!\n\n💡 **KEY CONCEPT**: Combines two relations based on common attribute names.\n\n**Syntax:** `relation1 ⋈ relation2`\n\n**Example:** Find instructors with their department budget\n\n```\ninstructor ⋈ department\n```\n\nThis matches rows where `instructor.dept_name = department.dept_name`\n\n**Result:**\n| ID | name | dept_name | salary | building | budget |\n|----|------|-----------|--------|----------|--------|\n| 10101 | Srinivasan | Comp. Sci. | 65000 | Taylor | 100000 |\n| 12121 | Wu | Finance | 90000 | Painter | 120000 |\n| ... | ... | ... | ... | ... | ... |\n\n---",
+              "line_num": 550
+            },
+            {
+              "title": "9. INTERSECTION (∩)",
+              "node_id": "0038",
+              "summary": "### 9. INTERSECTION (∩)\n\n💡 **KEY CONCEPT**: Rows common to both relations.\n\n**Syntax:** `relation1 ∩ relation2`\n\n📝 **NOTE**: Can be written using set difference: `r ∩ s = r − (r − s)`\n\n**Example:** Find courses taught in BOTH Fall 2017 AND Spring 2018\n\n```\nπ course_id (σ semester = \"Fall\" ∧ year = 2017 (section))\n∩\nπ course_id (σ semester = \"Spring\" ∧ year = 2018 (section))\n```\n\n---",
+              "line_num": 575
+            },
+            {
+              "title": "10. DIVISION (÷)",
+              "node_id": "0039",
+              "summary": "### 10. DIVISION (÷)\n\n⚠️ **EXAM TIP**: Division is tricky but important for \"all\" queries!\n\n💡 **KEY CONCEPT**: Find values that appear with ALL values from another relation.\n\n**Example:** Find students who have taken ALL courses\n\nIf we have:\n- Relation R: (student_ID, course_id) - which student took which course\n- Relation S: (course_id) - all courses\n\nThen `R ÷ S` gives students who took ALL courses!\n\n---",
+              "line_num": 593
+            }
+          ]
+        },
+        {
+          "title": "📊 Summary Table of Operations",
+          "node_id": "0040",
+          "summary": "## 📊 Summary Table of Operations\n\n| Operation | Symbol | Purpose | Example Use |\n|-----------|--------|---------|-------------|\n| Select | σ | Filter rows | Find CS instructors |\n| Project | π | Choose columns | Show only names |\n| Union | ∪ | Combine tables | Courses in Fall OR Spring |\n| Difference | − | Exclude rows | Courses in Fall but NOT Spring |\n| Product | × | All combinations | Before applying join condition |\n| Rename | ρ | Change names | For self-joins |\n| Join | ⋈ | Combine matching rows | Instructor with department |\n| Intersection | ∩ | Common rows | Courses in Fall AND Spring |\n| Division | ÷ | \"For all\" queries | Students taking all courses |\n\n---",
+          "line_num": 609
+        },
+        {
+          "title": "⚠️ Common Exam Questions on Chapter 2",
+          "node_id": "0041",
+          "summary": "## ⚠️ Common Exam Questions on Chapter 2\n\n1. **Define**: Relation, Tuple, Attribute, Domain\n2. **Difference between**: Schema and Instance\n3. **Types of Keys**: Define and give examples\n4. **Write Relational Algebra for**:\n   - Find all instructors in department X\n   - Find all students who took course Y\n   - Find instructors earning more than Z\n5. **Why is Primary Key important?**\n6. **What is Referential Integrity?**\n7. **Write expression using**: σ, π, ⋈, ∪, −\n\n---",
+          "line_num": 625
+        },
+        {
+          "title": "🎯 Key Points to Remember",
+          "node_id": "0042",
+          "summary": "## 🎯 Key Points to Remember\n\n1. ✅ A relation is a table\n2. ✅ All values must be atomic (no multi-values)\n3. ✅ Primary key uniquely identifies each row\n4. ✅ Foreign key maintains referential integrity\n5. ✅ σ (select) = filter rows, π (project) = choose columns\n6. ✅ Natural join matches on common column names\n7. ✅ Union requires compatible schemas\n8. ✅ Duplicate rows are removed in relational algebra\n\n---",
+          "line_num": 640
+        },
+        {
+          "title": "➡️ Next Steps",
+          "node_id": "0043",
+          "summary": "## ➡️ Next Steps\n\nGreat job completing Chapter 2! Now:\n1. Solve the practice questions in `01_CHAPTER2_PRACTICE.md`\n2. Then move to `02_CHAPTER3_INTRO_SQL.md`\n\nRemember: This chapter is the **foundation**. If you understand these concepts well, SQL will be much easier!",
+          "line_num": 653
+        }
+      ]
+    }
+  ]
+}

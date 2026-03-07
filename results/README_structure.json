@@ -1,0 +1,133 @@
+{
+  "doc_name": "README",
+  "structure": [
+    {
+      "title": "Brilliantify 🧠✨",
+      "node_id": "0000",
+      "prefix_summary": "# Brilliantify 🧠✨\n\n**AI-Powered Study Platform** — Transform your study PDFs into interactive learning experiences.\n\n![Next.js](https://img.shields.io/badge/Next.js-16-black)\n![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)\n![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4-cyan)\n![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green)",
+      "line_num": 1,
+      "nodes": [
+        {
+          "title": "Features",
+          "node_id": "0001",
+          "prefix_summary": "## Features",
+          "line_num": 10,
+          "nodes": [
+            {
+              "title": "Core",
+              "node_id": "0002",
+              "summary": "### Core\n- 📄 **PDF Upload & Processing** — Upload PDFs, auto-extract text, chunk, and embed\n- 📝 **Smart Summaries** — AI-generated structured summaries with key concepts, examples, takeaways\n- 🧠 **Quiz Generator** — MCQs, True/False, Short Answer with explanations and scoring\n- 🃏 **Flashcards with Spaced Repetition** — SM-2 algorithm for optimal retention\n- 💬 **AI Study Chatbot** — RAG-powered Q&A about your documents\n- 🎥 **Video Explanations** — AI-generated slide presentations with TTS narration\n- 🗺️ **Concept Maps** — Visual knowledge graphs of document concepts",
+              "line_num": 12
+            },
+            {
+              "title": "Analytics & Tracking",
+              "node_id": "0003",
+              "summary": "### Analytics & Tracking\n- 📊 **Progress Dashboard** — XP, levels, streaks, study time charts\n- 🎯 **Exam Tracker** — Log scores, set goals, track improvement\n- 📈 **Topic Mastery** — Per-topic mastery percentages\n- 🧭 **AI Weakness Detection** — Identify weak areas after quizzes",
+              "line_num": 21
+            },
+            {
+              "title": "Planning & Gamification",
+              "node_id": "0004",
+              "summary": "### Planning & Gamification\n- 📚 **AI Study Plans** — Personalized schedules based on exam date and syllabus\n- 🏆 **Gamification** — XP points, levels, streaks, badges\n- 🔔 **Smart Reminders** — Flashcard review, exam dates, streak warnings\n- 🔍 **Semantic Search** — Search across all uploaded documents",
+              "line_num": 27
+            }
+          ]
+        },
+        {
+          "title": "Tech Stack",
+          "node_id": "0005",
+          "summary": "## Tech Stack\n\n| Layer | Technology |\n|-------|-----------|\n| Frontend | Next.js 16 (App Router), TypeScript, TailwindCSS 4 |\n| UI Components | Radix UI primitives, custom ShadCN-style components |\n| Animation | Framer Motion |\n| Charts | Recharts |\n| Backend | Next.js API Routes |\n| Database | Supabase (PostgreSQL + pgvector) |\n| Auth | Supabase Auth |\n| Storage | Supabase Storage |\n| AI/LLM | OpenRouter (free models) |\n| Embeddings | HuggingFace Inference API (sentence-transformers) |\n| PDF | pdf-parse |\n| State | Zustand |",
+          "line_num": 33
+        },
+        {
+          "title": "Getting Started",
+          "node_id": "0006",
+          "prefix_summary": "## Getting Started",
+          "line_num": 50,
+          "nodes": [
+            {
+              "title": "Prerequisites",
+              "node_id": "0007",
+              "summary": "### Prerequisites\n- Node.js 18+\n- npm\n- A Supabase account (free tier)\n- OpenRouter API key (free)\n- HuggingFace API key (free)",
+              "line_num": 52
+            },
+            {
+              "title": "1. Clone & Install",
+              "node_id": "0008",
+              "summary": "### 1. Clone & Install\n\n```bash\ncd Brilliantify\nnpm install\n```",
+              "line_num": 59
+            },
+            {
+              "title": "2. Set Up Supabase",
+              "node_id": "0009",
+              "summary": "### 2. Set Up Supabase\n\n1. Create a new project at [supabase.com](https://supabase.com)\n2. Go to **SQL Editor** and run the migration file:\n   - Copy the contents of `supabase/migrations/001_initial_schema.sql`\n   - Paste and run in the SQL Editor\n3. Go to **Storage** and ensure the `documents` bucket exists (auto-created by migration)\n4. Go to **Settings > API** and copy your URL and anon key",
+              "line_num": 66
+            },
+            {
+              "title": "3. Get API Keys",
+              "node_id": "0010",
+              "summary": "### 3. Get API Keys\n\n**OpenRouter (Free LLM):**\n1. Sign up at [openrouter.ai](https://openrouter.ai)\n2. Copy your API key from the dashboard\n3. The app uses `mistralai/mistral-7b-instruct:free` by default\n\n**HuggingFace (Free Embeddings):**\n1. Sign up at [huggingface.co](https://huggingface.co)\n2. Go to Settings > Access Tokens\n3. Create a new token with read access",
+              "line_num": 75
+            },
+            {
+              "title": "4. Configure Environment",
+              "node_id": "0011",
+              "summary": "### 4. Configure Environment\n\nCopy `.env.local` and fill in your values:\n\n```env\nNEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co\nNEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key\nSUPABASE_SERVICE_ROLE_KEY=your-service-role-key\n\nOPENROUTER_API_KEY=your-openrouter-key\nHUGGINGFACE_API_KEY=your-huggingface-key\n\nNEXT_PUBLIC_APP_URL=http://localhost:3000\n```",
+              "line_num": 87
+            },
+            {
+              "title": "5. Run Development Server",
+              "node_id": "0012",
+              "summary": "### 5. Run Development Server\n\n```bash\nnpm run dev\n```\n\nOpen [http://localhost:3000](http://localhost:3000)",
+              "line_num": 102
+            }
+          ]
+        },
+        {
+          "title": "Deployment to Vercel",
+          "node_id": "0013",
+          "prefix_summary": "## Deployment to Vercel",
+          "line_num": 110,
+          "nodes": [
+            {
+              "title": "1. Push to GitHub",
+              "node_id": "0014",
+              "summary": "### 1. Push to GitHub\n\n```bash\ngit add .\ngit commit -m \"Initial commit\"\ngit remote add origin YOUR_GITHUB_REPO_URL\ngit push -u origin main\n```",
+              "line_num": 112
+            },
+            {
+              "title": "2. Deploy on Vercel",
+              "node_id": "0015",
+              "summary": "### 2. Deploy on Vercel\n\n1. Go to [vercel.com](https://vercel.com)\n2. Import your GitHub repository\n3. Add all environment variables from `.env.local`\n4. Deploy!",
+              "line_num": 121
+            },
+            {
+              "title": "3. Update Environment",
+              "node_id": "0016",
+              "summary": "### 3. Update Environment\n\nSet `NEXT_PUBLIC_APP_URL` to your Vercel URL.",
+              "line_num": 128
+            }
+          ]
+        },
+        {
+          "title": "Project Structure",
+          "node_id": "0017",
+          "summary": "The partial document describes the structure of a project, outlining the organization of its source code. The project appears to be a web application with a dashboard, API, login, and registration pages. The dashboard is divided into several sections, including document management, analytics, exams, study plans, and settings. The project also includes AI-powered features, such as a chatbot, quiz interface, and study plans. The codebase is organized into several directories, including components, libraries, stores, and types, with specific folders for UI primitives, AI pipeline, PDF processing, database clients, and utilities.",
+          "line_num": 132
+        },
+        {
+          "title": "Database Schema",
+          "node_id": "0018",
+          "summary": "## Database Schema\n\n13 tables including:\n- `profiles` — User data, XP, streaks\n- `documents` — Uploaded PDFs\n- `document_chunks` — Text chunks with vector embeddings\n- `summaries` — AI-generated summaries\n- `quizzes` / `quiz_attempts` — Quiz data and results\n- `flashcards` — Spaced repetition cards\n- `chat_messages` — Chatbot history\n- `exam_scores` — Exam tracking\n- `study_plans` — AI study schedules\n- `topic_mastery` — Per-topic metrics\n- `badges` — Gamification achievements",
+          "line_num": 166
+        },
+        {
+          "title": "License",
+          "node_id": "0019",
+          "summary": "## License\n\nMIT",
+          "line_num": 181
+        }
+      ]
+    }
+  ]
+}

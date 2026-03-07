@@ -1,5 +1,4 @@
 import tiktoken
-import openai
 import logging
 import os
 from datetime import datetime
@@ -16,19 +15,24 @@ import logging
 import yaml
 from pathlib import Path
 from types import SimpleNamespace as config
+from groq import Groq, AsyncGroq
 
-CHATGPT_API_KEY = os.getenv("CHATGPT_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+CHATGPT_API_KEY = GROQ_API_KEY  # backward compat alias
 
 def count_tokens(text, model=None):
     if not text:
         return 0
-    enc = tiktoken.encoding_for_model(model)
+    try:
+        enc = tiktoken.encoding_for_model(model)
+    except KeyError:
+        enc = tiktoken.get_encoding("cl100k_base")
     tokens = enc.encode(text)
     return len(tokens)
 
-def ChatGPT_API_with_finish_reason(model, prompt, api_key=CHATGPT_API_KEY, chat_history=None):
+def ChatGPT_API_with_finish_reason(model, prompt, api_key=GROQ_API_KEY, chat_history=None):
     max_retries = 10
-    client = openai.OpenAI(api_key=api_key)
+    client = Groq(api_key=api_key)
     for i in range(max_retries):
         try:
             if chat_history:
@@ -42,7 +46,8 @@ def ChatGPT_API_with_finish_reason(model, prompt, api_key=CHATGPT_API_KEY, chat_
                 messages=messages,
                 temperature=0,
             )
-            if response.choices[0].finish_reason == "length":
+            finish_reason = response.choices[0].finish_reason
+            if finish_reason and str(finish_reason) == "length":
                 return response.choices[0].message.content, "max_output_reached"
             else:
                 return response.choices[0].message.content, "finished"
@@ -51,16 +56,16 @@ def ChatGPT_API_with_finish_reason(model, prompt, api_key=CHATGPT_API_KEY, chat_
             print('************* Retrying *************')
             logging.error(f"Error: {e}")
             if i < max_retries - 1:
-                time.sleep(1)  # Wait for 1秒 before retrying
+                time.sleep(5)
             else:
                 logging.error('Max retries reached for prompt: ' + prompt)
                 return "Error"
 
 
 
-def ChatGPT_API(model, prompt, api_key=CHATGPT_API_KEY, chat_history=None):
+def ChatGPT_API(model, prompt, api_key=GROQ_API_KEY, chat_history=None, response_format=None):
     max_retries = 10
-    client = openai.OpenAI(api_key=api_key)
+    client = Groq(api_key=api_key)
     for i in range(max_retries):
         try:
             if chat_history:
@@ -69,45 +74,50 @@ def ChatGPT_API(model, prompt, api_key=CHATGPT_API_KEY, chat_history=None):
             else:
                 messages = [{"role": "user", "content": prompt}]
             
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=0,
-            )
-   
+            kwargs = {
+                "model": model,
+                "messages": messages,
+                "temperature": 0,
+            }
+            if response_format:
+                kwargs["response_format"] = response_format
+                
+            response = client.chat.completions.create(**kwargs)
             return response.choices[0].message.content
         except Exception as e:
             print('************* Retrying *************')
             logging.error(f"Error: {e}")
             if i < max_retries - 1:
-                time.sleep(1)  # Wait for 1秒 before retrying
+                time.sleep(5)
             else:
                 logging.error('Max retries reached for prompt: ' + prompt)
                 return "Error"
-            
 
-async def ChatGPT_API_async(model, prompt, api_key=CHATGPT_API_KEY):
+
+async def ChatGPT_API_async(model, prompt, api_key=GROQ_API_KEY):
     max_retries = 10
     messages = [{"role": "user", "content": prompt}]
     for i in range(max_retries):
         try:
-            async with openai.AsyncOpenAI(api_key=api_key) as client:
-                response = await client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    temperature=0,
-                )
-                return response.choices[0].message.content
+            client = AsyncGroq(api_key=api_key)
+            response = await client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=0,
+            )
+            return response.choices[0].message.content
         except Exception as e:
             print('************* Retrying *************')
             logging.error(f"Error: {e}")
             if i < max_retries - 1:
-                await asyncio.sleep(1)  # Wait for 1s before retrying
+                await asyncio.sleep(5)
             else:
                 logging.error('Max retries reached for prompt: ' + prompt)
-                return "Error"  
-            
-            
+                return "Error"
+
+
+
+
 def get_json_content(response):
     start_idx = response.find("```json")
     if start_idx != -1:
@@ -410,8 +420,11 @@ def add_preface_if_needed(data):
 
 
 
-def get_page_tokens(pdf_path, model="gpt-4o-2024-11-20", pdf_parser="PyPDF2"):
-    enc = tiktoken.encoding_for_model(model)
+def get_page_tokens(pdf_path, model="llama-3.3-70b-versatile", pdf_parser="PyPDF2"):
+    try:
+        enc = tiktoken.encoding_for_model(model)
+    except KeyError:
+        enc = tiktoken.get_encoding("cl100k_base")
     if pdf_parser == "PyPDF2":
         pdf_reader = PyPDF2.PdfReader(pdf_path)
         page_list = []
@@ -533,7 +546,7 @@ def remove_structure_text(data):
 def check_token_limit(structure, limit=110000):
     list = structure_to_list(structure)
     for node in list:
-        num_tokens = count_tokens(node['text'], model='gpt-4o')
+        num_tokens = count_tokens(node['text'], model='llama-3.3-70b-versatile')
         if num_tokens > limit:
             print(f"Node ID: {node['node_id']} has {num_tokens} tokens")
             print("Start Index:", node['start_index'])
