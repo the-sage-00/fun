@@ -39,7 +39,8 @@ export default function App() {
       const formData = new FormData();
       formData.append('file', selected);
 
-      const res = await axios.post('http://localhost:8000/api/upload', formData, {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const res = await axios.post(`${API_URL}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
@@ -78,7 +79,8 @@ export default function App() {
       formData.append('filename', file.name);
       formData.append('tree_path', treePath);
 
-      const res = await axios.post('http://localhost:8000/api/ask', formData);
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const res = await axios.post(`${API_URL}/api/ask`, formData);
 
       setMessages(prev => prev.map(m =>
         m.id === loadingId
