@@ -158,10 +158,8 @@ export default function App() {
       {/* Header */}
       <header className="shrink-0 flex items-center justify-between px-4 sm:px-8 h-14 sm:h-16 border-b border-white/[0.06] z-20">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-            <Sparkles size={14} className="text-white" />
-          </div>
-          <h1 className="text-base sm:text-lg font-semibold tracking-tight">Cortex</h1>
+          <img src="/logo.png" alt="Synapse" className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shadow-lg shadow-violet-500/20 object-cover" />
+          <h1 className="text-base sm:text-lg font-semibold tracking-tight">Synapse</h1>
           <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-white/[0.06] text-[10px] font-medium text-white/50 border border-white/[0.06] tracking-wide">BETA</span>
         </div>
 
@@ -204,14 +202,12 @@ export default function App() {
               <div className="flex-1 flex flex-col items-center justify-center w-full max-w-2xl animate-fade-in">
 
                 {/* Hero */}
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-indigo-600/20 border border-violet-500/20 flex items-center justify-center mb-6 sm:mb-8 shadow-2xl shadow-violet-500/10">
-                  <Sparkles size={24} className="text-violet-400" />
-                </div>
+                <img src="/logo.png" alt="Synapse Logo" className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl mb-6 sm:mb-8 shadow-2xl shadow-violet-500/20 object-cover" />
                 <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-center mb-3 sm:mb-4 bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">
                   What do you want to know?
                 </h2>
                 <p className="text-sm sm:text-base text-white/40 text-center mb-8 sm:mb-12 max-w-md px-4">
-                  Upload a document and ask anything. Cortex will intelligently search your content and <span className="text-violet-400/60">visualize the search path</span>.
+                  Upload a document and ask anything. Synapse will intelligently search your content and <span className="text-violet-400/60">visualize the search path</span>.
                 </p>
 
                 {/* Quick Actions */}
@@ -323,7 +319,7 @@ export default function App() {
             </div>
 
             <p className="text-center text-[10px] sm:text-xs text-white/20 mt-3 sm:mt-4 tracking-wide">
-              Powered by PageIndex · Built by <span className="text-white/30 font-medium">Sage</span>
+              Powered by Synapse · Built by <span className="text-white/30 font-medium">Sage</span>
             </p>
           </div>
         </div>
