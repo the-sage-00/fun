@@ -16,6 +16,8 @@ interface TreeVisualizationProps {
     traversalPath: string[];
     isSearching: boolean;
     thinking: string;
+    hoveredSource?: string | null;
+    relevanceMap?: Record<string, number>;
 }
 
 interface D3Node {
@@ -105,6 +107,8 @@ export default function TreeVisualization({
     traversalPath,
     isSearching,
     thinking,
+    hoveredSource,
+    relevanceMap,
 }: TreeVisualizationProps) {
     const svgRef = useRef<SVGSVGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -536,19 +540,25 @@ export default function TreeVisualization({
             }
         }
 
-        // Animate traversed nodes with glowing blue highlight like the screenshot
+        // Animate traversed nodes with glowing heat highlight based on relevance score
         let delay = 300;
+
+        // Setup color scale for Heatmap (0 to 1) -> (blue to pink)
+        const nodeColorScale = d3.scaleLinear<string>().domain([0.0, 1.0]).range(['rgba(30, 64, 175, 0.4)', 'rgba(236, 72, 153, 0.5)']);
+        const strokeColorScale = d3.scaleLinear<string>().domain([0.0, 1.0]).range(['#3b82f6', '#ec4899']);
+
         root.each((node) => {
             if (activeIds.has(node.data.nodeId) && node.depth !== 0) { // Keep root green
                 const isTarget = targetIds.has(node.data.nodeId);
+                const score = (relevanceMap && relevanceMap[node.data.nodeId]) ? relevanceMap[node.data.nodeId] : (isTarget ? 0.8 : 0.0);
 
                 svg
                     .selectAll(`.tree-node[data-node-id="${node.data.nodeId}"] .node-box`)
                     .transition()
                     .delay(delay)
                     .duration(500)
-                    .attr('fill', isTarget ? 'rgba(59, 130, 246, 0.2)' : 'rgba(30, 64, 175, 0.4)') // Vivid blue background
-                    .attr('stroke', '#3b82f6')
+                    .attr('fill', isTarget ? nodeColorScale(score) : 'rgba(30, 64, 175, 0.4)')
+                    .attr('stroke', isTarget ? strokeColorScale(score) : '#3b82f6')
                     .attr('filter', isTarget ? 'url(#glow)' : null);
 
                 svg
@@ -562,12 +572,61 @@ export default function TreeVisualization({
                 delay += 100;
             }
         });
-    }, [traversalPath, rootHierarchy, dimensions]);
+    }, [traversalPath, rootHierarchy, dimensions, relevanceMap]);
 
     // Re-render when dependencies change
     useEffect(() => {
         renderTree();
     }, [renderTree]);
+
+    // ── Handle Hover Highlights ──
+    useEffect(() => {
+        if (!svgRef.current || !rootHierarchy) return;
+        const svg = d3.select(svgRef.current);
+
+        const targetIds = new Set(traversalPath.map((id) => String(id).padStart(4, '0')));
+        const activeIds = getAncestorIds(rootHierarchy, targetIds);
+        const isSearchedState = traversalPath.length > 0;
+
+        if (hoveredSource) {
+            svg.selectAll('.tree-node').each(function (d: any) {
+                if (d.depth !== 0 && d.data.name === hoveredSource) {
+                    d3.select(this).select('.node-box')
+                        .transition().duration(200)
+                        .attr('stroke', '#a78bfa') // Violet highlight
+                        .attr('filter', 'url(#glow)')
+                        .attr('fill', 'rgba(139, 92, 246, 0.4)');
+
+                    // Make it fully opaque
+                    d3.select(this).transition().duration(200).attr('opacity', 1);
+                }
+            });
+        } else {
+            // Revert state
+            svg.selectAll('.tree-node').each(function (d: any) {
+                if (d.depth !== 0) {
+                    const isTarget = targetIds.has(d.data.nodeId);
+                    const isActive = activeIds.has(d.data.nodeId);
+
+                    if (isActive) {
+                        d3.select(this).select('.node-box')
+                            .transition().duration(200)
+                            .attr('stroke', '#3b82f6')
+                            .attr('fill', isTarget ? 'rgba(59, 130, 246, 0.2)' : 'rgba(30, 64, 175, 0.4)')
+                            .attr('filter', isTarget ? 'url(#glow)' : null);
+                    } else {
+                        d3.select(this).select('.node-box')
+                            .transition().duration(200)
+                            .attr('stroke', (n: any) => n.children || n.data._children ? 'rgba(59, 130, 246, 0.5)' : 'rgba(255, 255, 255, 0.15)')
+                            .attr('fill', (n: any) => (n.data._children && !n.children) ? 'rgba(30, 41, 59, 1)' : 'rgba(15, 23, 42, 0.9)')
+                            .attr('filter', null);
+
+                        d3.select(this).transition().duration(200).attr('opacity', isSearchedState && !isActive ? 0.15 : 1);
+                    }
+                }
+            });
+        }
+    }, [hoveredSource, traversalPath, rootHierarchy]);
 
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-[#0a0a0f] rounded-tl-xl selection:bg-violet-500/30">

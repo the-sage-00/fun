@@ -89,7 +89,16 @@ async def upload_document(file: UploadFile = File(...)):
              else:
                  raise HTTPException(status_code=500, detail="Tree structure was not generated.")
                  
-        return {"filename": file.filename, "tree_path": tree_path, "tree": json.load(open(tree_path, 'r', encoding='utf-8')), "status": "success"}
+        tree = json.load(open(tree_path, 'r', encoding='utf-8'))
+        
+        try:
+            from ask_question import generate_smart_questions
+            smart_questions = generate_smart_questions(tree)
+        except Exception as e:
+            print("Error generating smart questions:", e)
+            smart_questions = []
+
+        return {"filename": file.filename, "tree_path": tree_path, "tree": tree, "smart_questions": smart_questions, "status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -120,13 +129,13 @@ async def ask_question_api(question: str = Form(...), filename: str = Form(...),
         
         # Use our groq model
         model = "llama-3.3-70b-versatile"
-        context, titles, thinking, traversal_path = retrieve_relevant_sections(question, tree, doc_content, model)
+        context, titles, thinking, traversal_path, relevance_map = retrieve_relevant_sections(question, tree, doc_content, model)
         
         if not context.strip():
-            return {"answer": "I couldn't find relevant sections for this question.", "sources": [], "traversal_path": [], "thinking": "No relevant sections found."}
+            return {"answer": "I couldn't find relevant sections for this question.", "sources": [], "traversal_path": [], "thinking": "No relevant sections found.", "relevance_map": {}}
             
         answer = answer_question(question, context, model)
-        return {"answer": answer, "sources": titles, "traversal_path": traversal_path, "thinking": thinking}
+        return {"answer": answer, "sources": titles, "traversal_path": traversal_path, "thinking": thinking, "relevance_map": relevance_map}
     except Exception as e:
         import traceback
         traceback.print_exc()

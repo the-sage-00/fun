@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Paperclip, ArrowUp, Loader2, FileText, CheckCircle2, Sparkles, BookOpen, Zap, PanelRightOpen, PanelRightClose, Info, X } from 'lucide-react';
+import { Paperclip, ArrowUp, Loader2, FileText, CheckCircle2, Sparkles, BookOpen, Zap, PanelRightOpen, PanelRightClose, Info, X, Mic, VolumeX } from 'lucide-react';
 import axios from 'axios';
 import TreePanel from './components/TreePanel';
 import type { TreeNode } from './components/TreeVisualization';
@@ -22,13 +22,16 @@ export default function App() {
   // ── Tree visualization state ──
   const [treeData, setTreeData] = useState<TreeNode[] | null>(null);
   const [traversalPath, setTraversalPath] = useState<string[]>([]);
+  const [relevanceMap, setRelevanceMap] = useState<Record<string, number>>({});
   const [isSearching, setIsSearching] = useState(false);
   const [thinking, setThinking] = useState('');
   const [showTree, setShowTree] = useState(true);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [hoveredSource, setHoveredSource] = useState<string | null>(null);
 
   const [query, setQuery] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
+  const [smartQuestions, setSmartQuestions] = useState<string[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -40,6 +43,55 @@ export default function App() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // ── Voice Mode State ──
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+
+        recognition.onstart = () => setIsListening(true);
+        recognition.onend = () => setIsListening(false);
+        recognition.onerror = (e: any) => {
+          console.error('Speech recognition error', e);
+          setIsListening(false);
+        };
+        recognition.onresult = (event: any) => {
+          let transcript = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            transcript += event.results[i][0].transcript;
+          }
+          setQuery(transcript);
+        };
+        recognitionRef.current = recognition;
+      }
+      synthRef.current = window.speechSynthesis;
+    }
+  }, []);
+
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+    } else {
+      setQuery('');
+      recognitionRef.current?.start();
+    }
+  };
+
+  const stopSpeaking = () => {
+    if (synthRef.current) {
+      synthRef.current.cancel();
+      setIsSpeaking(false);
+    }
+  };
 
   // ── Loading Messages State ──
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
@@ -79,7 +131,9 @@ export default function App() {
     setFile(selected);
     setIsUploading(true);
     setTraversalPath([]);
+    setRelevanceMap({});
     setThinking('');
+    setSmartQuestions([]);
 
     try {
       const formData = new FormData();
@@ -95,6 +149,10 @@ export default function App() {
       if (res.data.tree) {
         const structure = res.data.tree.structure || res.data.tree;
         setTreeData(Array.isArray(structure) ? structure : [structure]);
+      }
+
+      if (res.data.smart_questions && res.data.smart_questions.length > 0) {
+        setSmartQuestions(res.data.smart_questions);
       }
 
       setMessages([{
@@ -126,6 +184,7 @@ export default function App() {
     setQuery('');
     setIsSearching(true);
     setTraversalPath([]); // Reset previous highlights
+    setRelevanceMap({});
     setThinking('Analyzing your question and searching the tree...');
 
     try {
@@ -140,8 +199,26 @@ export default function App() {
       if (res.data.traversal_path) {
         setTraversalPath(res.data.traversal_path);
       }
+      if (res.data.relevance_map) {
+        setRelevanceMap(res.data.relevance_map);
+      }
       if (res.data.thinking) {
         setThinking(res.data.thinking);
+      }
+
+      // Voice Mode: Read the answer aloud (cleaning basic markdown)
+      if (synthRef.current) {
+        synthRef.current.cancel();
+        const cleanText = res.data.answer.replace(/[*#_`]/g, '');
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+
+        const voices = synthRef.current.getVoices();
+        const preferredVoice = voices.find(v => v.name.includes('Google') || v.name.includes('Siri') || v.name.includes('Samantha') || v.name.includes('Premium')) || voices[0];
+        if (preferredVoice) utterance.voice = preferredVoice;
+
+        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onend = () => setIsSpeaking(false);
+        synthRef.current.speak(utterance);
       }
 
       setMessages(prev => prev.map(m =>
@@ -332,7 +409,12 @@ export default function App() {
                               {msg.sources && msg.sources.length > 0 && (
                                 <div className="mt-2 pt-2.5 border-t border-white/[0.06] flex flex-wrap gap-1.5">
                                   {msg.sources.map((s, i) => (
-                                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-[11px] text-white/40">
+                                    <span
+                                      key={i}
+                                      onMouseEnter={() => setHoveredSource(s)}
+                                      onMouseLeave={() => setHoveredSource(null)}
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-[11px] text-white/40 cursor-default hover:bg-violet-500/20 hover:text-violet-200 hover:border-violet-500/30 transition-all duration-200"
+                                    >
                                       <FileText size={10} /> {s}
                                     </span>
                                   ))}
@@ -351,6 +433,24 @@ export default function App() {
 
           {/* Input Area — Always at bottom */}
           <div className="shrink-0 w-full max-w-2xl px-4 sm:px-6 pb-4 sm:pb-6 pt-2">
+
+            {/* Smart Questions (Only show immediately after document upload) */}
+            {smartQuestions.length > 0 && messages.length <= 1 && (
+              <div className="flex flex-wrap gap-2 mb-3 animate-fade-in delay-200">
+                {smartQuestions.map((sq, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setQuery(sq);
+                      if (textareaRef.current) textareaRef.current.focus();
+                    }}
+                    className="flex-1 text-left px-3.5 py-2.5 text-[12px] sm:text-[13px] leading-snug text-white/70 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:bg-violet-500/10 hover:border-violet-500/30 hover:text-violet-200 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.2)]"
+                  >
+                    {sq}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Search Bar Container */}
             <div className="rounded-2xl w-full p-1.5 sm:p-2 flex items-end bg-white/[0.04] border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.4)] transition-all duration-300 focus-within:border-violet-500/30 focus-within:shadow-[0_8px_40px_rgba(139,92,246,0.08)]">
@@ -375,11 +475,30 @@ export default function App() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={file ? "Ask a question about your document..." : "Attach a document to get started"}
+                placeholder={isListening ? "Listening..." : (file ? "Ask a question about your document..." : "Attach a document to get started")}
                 disabled={!file || isUploading}
                 className="flex-1 max-h-48 min-h-[40px] sm:min-h-[44px] bg-transparent border-none outline-none resize-none pt-2.5 sm:pt-3 pb-2.5 sm:pb-3 px-1 sm:px-2 text-[14px] sm:text-[15px] text-white/90 placeholder:text-white/20 disabled:opacity-40"
                 rows={1}
               />
+
+              {isSpeaking && (
+                <button
+                  onClick={stopSpeaking}
+                  className="p-2.5 sm:p-3 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-xl transition-all shrink-0 animate-pulse"
+                  title="Stop Speaking"
+                >
+                  <VolumeX size={18} />
+                </button>
+              )}
+
+              <button
+                onClick={toggleListening}
+                disabled={!file || isUploading}
+                className={`p-2.5 sm:p-3 rounded-xl transition-all shrink-0 ${isListening ? 'text-rose-400 bg-rose-500/20 animate-pulse' : 'text-white/30 hover:text-white/70 hover:bg-white/[0.04]'} disabled:opacity-30 disabled:hover:bg-transparent`}
+                title="Voice Input"
+              >
+                <Mic size={18} />
+              </button>
 
               <button
                 onClick={handleSend}
@@ -402,9 +521,11 @@ export default function App() {
             <TreePanel
               treeData={treeData}
               traversalPath={traversalPath}
+              relevanceMap={relevanceMap}
               isSearching={isSearching}
               thinking={thinking}
               documentName={file?.name || ''}
+              hoveredSource={hoveredSource}
             />
           </div>
         )}
@@ -415,9 +536,11 @@ export default function App() {
             <TreePanel
               treeData={treeData}
               traversalPath={traversalPath}
+              relevanceMap={relevanceMap}
               isSearching={isSearching}
               thinking={thinking}
               documentName={file?.name || ''}
+              hoveredSource={hoveredSource}
             />
           </div>
         )}

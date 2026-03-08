@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toPng } from 'html-to-image';
 import TreeVisualization, { type TreeNode } from './TreeVisualization';
-import { Network, Tags, ChevronDown, ChevronUp, Maximize2 } from 'lucide-react';
+import { Network, Tags, ChevronDown, ChevronUp, Maximize2, Download, Loader2 } from 'lucide-react';
 
 interface TreePanelProps {
     treeData: TreeNode[] | null;
@@ -9,6 +10,8 @@ interface TreePanelProps {
     isSearching: boolean;
     thinking: string;
     documentName: string;
+    hoveredSource?: string | null;
+    relevanceMap?: Record<string, number>;
 }
 
 export default function TreePanel({
@@ -17,9 +20,13 @@ export default function TreePanel({
     isSearching,
     thinking,
     documentName,
+    hoveredSource,
+    relevanceMap,
 }: TreePanelProps) {
     const [showLabels, setShowLabels] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
+    const treeContainerRef = useRef<HTMLDivElement>(null);
 
     const legendItems = [
         { color: 'rgba(255,255,255,0.25)', label: 'Not searched', border: 'rgba(255,255,255,0.08)' },
@@ -40,6 +47,26 @@ export default function TreePanel({
     };
 
     const totalNodes = getTotalNodes(treeData);
+
+    const handleExport = async () => {
+        if (!treeContainerRef.current) return;
+        try {
+            setIsExporting(true);
+            const dataUrl = await toPng(treeContainerRef.current, {
+                cacheBust: true,
+                backgroundColor: '#0a0a0f',
+                pixelRatio: 2 // High-res export
+            });
+            const link = document.createElement('a');
+            link.download = `synapse-${documentName ? documentName.replace(/\.[^/.]+$/, "") : 'mindmap'}.png`;
+            link.href = dataUrl;
+            link.click();
+        } catch (err) {
+            console.error('Failed to export mind map', err);
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     return (
         <div className="flex flex-col h-full bg-[#050508] border-l border-white/[0.06]">
@@ -69,11 +96,25 @@ export default function TreePanel({
                 </div>
 
                 <div className="flex items-center gap-1.5">
+                    {treeData && (
+                        <button
+                            onClick={handleExport}
+                            disabled={isExporting}
+                            className={`p-2 rounded-xl transition-all ${isExporting
+                                ? 'text-violet-400 bg-violet-500/15'
+                                : 'text-white/40 hover:text-white/80 hover:bg-white/[0.06] border border-transparent hover:border-white/[0.08]'
+                                }`}
+                            title="Export Mind Map as PNG"
+                        >
+                            {isExporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                        </button>
+                    )}
+
                     <button
                         onClick={() => setShowLabels(!showLabels)}
                         className={`p-2 rounded-xl transition-all ${showLabels
-                                ? 'bg-violet-500/15 text-violet-400 border border-violet-500/20 shadow-inner'
-                                : 'text-white/30 hover:text-white/60 hover:bg-white/[0.06] border border-transparent'
+                            ? 'bg-violet-500/15 text-violet-400 border border-violet-500/20 shadow-inner'
+                            : 'text-white/30 hover:text-white/60 hover:bg-white/[0.06] border border-transparent'
                             }`}
                         title="Toggle text labels"
                     >
@@ -101,12 +142,16 @@ export default function TreePanel({
                         className="flex-1 min-h-0 relative bg-[#0a0a0f]"
                         style={{ flex: '1 1 0' }}
                     >
-                        <TreeVisualization
-                            treeData={treeData}
-                            traversalPath={traversalPath}
-                            isSearching={isSearching}
-                            thinking={thinking}
-                        />
+                        <div ref={treeContainerRef} className="w-full h-full">
+                            <TreeVisualization
+                                treeData={treeData}
+                                traversalPath={traversalPath}
+                                isSearching={isSearching}
+                                thinking={thinking}
+                                hoveredSource={hoveredSource}
+                                relevanceMap={relevanceMap}
+                            />
+                        </div>
 
                         {/* Interactive hint overlay */}
                         {treeData && !isSearching && traversalPath.length === 0 && (

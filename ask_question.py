@@ -85,7 +85,8 @@ def retrieve_relevant_sections(query, tree, doc_content, model="llama-3.3-70b-ve
     
     # Step 2: Ask the LLM which nodes are relevant
     prompt = f"""You are given a query and the tree structure of a document.
-You need to find all nodes that are likely to contain the answer.
+You need to find all nodes that are likely to contain the answer, and assign each a relevance score from 0.0 to 1.0. 
+Higher scores (0.8-1.0) mean the node directly answers the core question. Lower scores (0.3-0.7) mean peripheral or supporting context.
 
 Query: {query}
 
@@ -94,8 +95,8 @@ Document tree structure:
 
 Reply in the following JSON format:
 {{
-  "thinking": <your reasoning about which nodes are relevant>,
-  "node_list": [node_id1, node_id2, ...]
+  "thinking": "<your reasoning about which nodes are relevant>",
+  "node_relevance": {{"node_id1": 0.9, "node_id2": 0.4}}
 }}
 """
     
@@ -111,11 +112,17 @@ Reply in the following JSON format:
             result = json.loads(json_str)
         else:
             result = json.loads(response)
-        selected_nodes = result.get('node_list', [])
+            
+        node_relevance = result.get('node_relevance', {})
+        if not node_relevance and 'node_list' in result:
+            node_relevance = {str(n): 1.0 for n in result['node_list']}
+            
+        selected_nodes = list(node_relevance.keys())
         thinking = result.get('thinking', '')
     except Exception as e:
         print(f"  [Debug] Parse Error: {e}")
         print(f"  [Debug] Raw LLM response: {response[:200]}...")
+        node_relevance = {}
         selected_nodes = []
         thinking = "Could not parse response"
     
@@ -144,7 +151,40 @@ Reply in the following JSON format:
                 retrieved_titles.append(node['title'])
                 break
     
-    return retrieved_text, retrieved_titles, thinking, [str(n) for n in selected_nodes]
+    # Clean up node_relevance to string keys and ensure values are floats
+    clean_relevance = {str(k).zfill(4): float(v) for k, v in node_relevance.items()}
+    
+    return retrieved_text, retrieved_titles, thinking, [str(n).zfill(4) for n in selected_nodes], clean_relevance
+
+def generate_smart_questions(tree, model="llama-3.3-70b-versatile"):
+    """Generate 3 highly specific context-aware questions from the document tree."""
+    tree_string = tree_to_string(tree.get('structure', tree))
+    
+    prompt = f"""You are an insightful AI assistant analyzing a newly uploaded document.
+Based on the following document's semantic structure map, generate exactly 3 highly specific, insightful, and diverse questions that a user might want to ask about it.
+Do not ask generic questions like "What is this document about?". Be specific to the details in the tree.
+
+Document tree structure:
+{tree_string}
+
+Reply ONLY in the following exact JSON format:
+{{
+  "questions": ["Specific question 1?", "Specific question 2?", "Specific question 3?"]
+}}
+"""
+    response = ChatGPT_API(model=model, prompt=prompt, response_format={"type": "json_object"})
+    try:
+        import re
+        match = re.search(r'\{.*\}', response, re.DOTALL)
+        if match:
+            json_str = match.group(0)
+            result = json.loads(json_str)
+        else:
+            result = json.loads(response)
+        return result.get('questions', [])[:3]
+    except Exception as e:
+        print(f"  [Debug] Parse Error for smart questions: {e}")
+        return []
 
 def answer_question(query, context, model="llama-3.3-70b-versatile"):
     """Generate an answer using the retrieved context."""
@@ -170,7 +210,7 @@ def ask(question, tree_path, doc_path, model="llama-3.3-70b-versatile"):
     doc_content = load_document(doc_path)
     
     print(f"\n🔍 Searching for relevant sections...")
-    context, titles, thinking = retrieve_relevant_sections(question, tree, doc_content, model)
+    context, titles, thinking, _, _ = retrieve_relevant_sections(question, tree, doc_content, model)
     
     if not context.strip():
         print("❌ Could not find relevant sections.")
