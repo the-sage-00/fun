@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Paperclip, ArrowUp, Loader2, FileText, CheckCircle2, Sparkles, BookOpen, Zap, PanelRightOpen, PanelRightClose } from 'lucide-react';
+import { Paperclip, ArrowUp, Loader2, FileText, CheckCircle2, Sparkles, BookOpen, Zap, PanelRightOpen, PanelRightClose, Info, X } from 'lucide-react';
 import axios from 'axios';
 import TreePanel from './components/TreePanel';
 import type { TreeNode } from './components/TreeVisualization';
@@ -25,6 +25,7 @@ export default function App() {
   const [isSearching, setIsSearching] = useState(false);
   const [thinking, setThinking] = useState('');
   const [showTree, setShowTree] = useState(true);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
 
   const [query, setQuery] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -39,6 +40,29 @@ export default function App() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // ── Loading Messages State ──
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  const loadingMessages = [
+    "Analyzing document structure...",
+    "Traversing semantic nodes...",
+    "Extracting relevant context...",
+    "Synthesizing logical pathways...",
+    "Formulating precision answer..."
+  ];
+
+  // Rotate loading messages
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (isSearching) {
+      interval = setInterval(() => {
+        setLoadingMessageIndex(prev => (prev + 1) % loadingMessages.length);
+      }, 2500);
+    } else {
+      setLoadingMessageIndex(0);
+    }
+    return () => clearInterval(interval);
+  }, [isSearching]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -179,6 +203,18 @@ export default function App() {
             </button>
           )}
 
+          {/* How it Works Button */}
+          <button
+            onClick={() => setShowHowItWorks(!showHowItWorks)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all ${showHowItWorks
+              ? 'bg-white/[0.08] text-white border border-white/[0.12]'
+              : 'text-white/40 hover:text-white/70 hover:bg-white/[0.04] border border-transparent'
+              }`}
+          >
+            <Info size={14} />
+            <span className="hidden sm:inline">Guide</span>
+          </button>
+
           {/* File status in header */}
           {file && (
             <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06]">
@@ -188,6 +224,40 @@ export default function App() {
           )}
         </div>
       </header>
+
+      {/* How it Works Modal Overlay */}
+      {showHowItWorks && (
+        <div className="absolute top-16 right-4 sm:right-8 z-50 w-[340px] animate-fade-in shadow-2xl rounded-2xl overflow-hidden border border-white/[0.08]"
+          style={{
+            background: 'rgba(12, 12, 18, 0.95)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.8), 0 0 40px rgba(139, 92, 246, 0.1)'
+          }}>
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] bg-white/[0.02]">
+            <h3 className="font-semibold text-white/90 flex items-center gap-2">
+              <Sparkles size={16} className="text-violet-400" />
+              How Synapse Works
+            </h3>
+            <button onClick={() => setShowHowItWorks(false)} className="text-white/40 hover:text-white/80 transition-colors">
+              <X size={16} />
+            </button>
+          </div>
+          <div className="p-5 space-y-5 text-[13px] leading-relaxed text-white/60">
+            <div className="space-y-1.5">
+              <div className="font-medium text-violet-300">1. Upload a Document</div>
+              <p>Synapse extracts the raw text and algorithms intelligently map out its semantic structure into a navigable Mind Map without using expensive vector databases.</p>
+            </div>
+            <div className="space-y-1.5">
+              <div className="font-medium text-emerald-400">2. Explore the Tree</div>
+              <p>Click the <span className="text-white/80 font-bold px-1">+</span> and <span className="text-white/80 font-bold px-1">-</span> nodes on branches to interactively collapse or expand sections of your document visually.</p>
+            </div>
+            <div className="space-y-1.5">
+              <div className="font-medium text-blue-400">3. Ask a Question</div>
+              <p>When you ask a query, the AI searches down the tree path and visually lights up the exact trail of logic it used to find your answer.</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content — Split Panel */}
       <main className="flex-1 flex overflow-hidden">
@@ -250,7 +320,9 @@ export default function App() {
                                 <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
                                 <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
                               </div>
-                              <span className="text-xs sm:text-sm text-white/40">Searching tree & generating answer…</span>
+                              <span className="text-xs sm:text-sm text-white/40 animate-pulse transition-opacity duration-300">
+                                {loadingMessages[loadingMessageIndex]}
+                              </span>
                             </div>
                           ) : (
                             <>
