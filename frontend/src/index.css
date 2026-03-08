@@ -30,7 +30,7 @@ body {
   background-color: rgba(139, 92, 246, 0.3);
 }
 
-/* Smooth fade in */
+/* ── Smooth fade in ── */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -47,7 +47,7 @@ body {
   animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Subtle pulse for loading */
+/* ── Subtle pulse for loading ── */
 @keyframes subtlePulse {
 
   0%,
@@ -58,4 +58,87 @@ body {
   50% {
     opacity: 1;
   }
+}
+
+/* ── Tree Visualization Styles ── */
+
+/* Node glow animation for active/found nodes */
+@keyframes nodeGlow {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.4));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.7));
+  }
+}
+
+@keyframes nodeGlowGreen {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.4));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.7));
+  }
+}
+
+/* Path tracing animation — stroke-dashoffset from full to zero */
+@keyframes pathTrace {
+  from {
+    stroke-dashoffset: 1000;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.tree-link-animated {
+  stroke-dasharray: 1000;
+  animation: pathTrace 1.5s ease-out forwards;
+}
+
+/* Fade to green transition for "found" nodes */
+@keyframes fadeToGreen {
+  from {
+    fill: #8b5cf6;
+    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.6));
+  }
+
+  to {
+    fill: #10b981;
+    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6));
+  }
+}
+
+/* Tree node hover effect */
+.tree-node circle {
+  transition: r 0.3s ease, fill 0.3s ease, filter 0.3s ease;
+}
+
+.tree-node:hover circle {
+  r: 8;
+  filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.5));
+}
+
+.tree-node text {
+  transition: fill 0.3s ease, font-weight 0.3s ease;
+  pointer-events: none;
+}
+
+.tree-link {
+  transition: stroke 0.6s ease, stroke-width 0.4s ease, opacity 0.6s ease;
+}
+
+/* Line clamp utility */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

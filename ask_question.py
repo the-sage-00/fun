@@ -144,7 +144,7 @@ Reply in the following JSON format:
                 retrieved_titles.append(node['title'])
                 break
     
-    return retrieved_text, retrieved_titles, thinking
+    return retrieved_text, retrieved_titles, thinking, [str(n) for n in selected_nodes]
 
 def answer_question(query, context, model="llama-3.3-70b-versatile"):
     """Generate an answer using the retrieved context."""

@@ -89,11 +89,23 @@ async def upload_document(file: UploadFile = File(...)):
              else:
                  raise HTTPException(status_code=500, detail="Tree structure was not generated.")
                  
-        return {"filename": file.filename, "tree_path": tree_path, "status": "success"}
+        return {"filename": file.filename, "tree_path": tree_path, "tree": json.load(open(tree_path, 'r', encoding='utf-8')), "status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 from ask_question import retrieve_relevant_sections, answer_question, load_tree, load_document
+
+@app.get("/api/tree/{filename}")
+async def get_tree(filename: str):
+    """Returns the tree JSON for a previously processed document."""
+    tree_filename = os.path.splitext(filename)[0] + "_structure.json"
+    tree_path = os.path.join(RESULTS_DIR, tree_filename)
+    if not os.path.exists(tree_path):
+        tree_path = os.path.join("results", tree_filename)
+    if not os.path.exists(tree_path):
+        raise HTTPException(status_code=404, detail="Tree not found for this document.")
+    with open(tree_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
 
 @app.post("/api/ask")
 async def ask_question_api(question: str = Form(...), filename: str = Form(...), tree_path: str = Form(...)):
@@ -108,13 +120,13 @@ async def ask_question_api(question: str = Form(...), filename: str = Form(...),
         
         # Use our groq model
         model = "llama-3.3-70b-versatile"
-        context, titles, _ = retrieve_relevant_sections(question, tree, doc_content, model)
+        context, titles, thinking, traversal_path = retrieve_relevant_sections(question, tree, doc_content, model)
         
         if not context.strip():
-            return {"answer": "I couldn't find relevant sections for this question.", "sources": []}
+            return {"answer": "I couldn't find relevant sections for this question.", "sources": [], "traversal_path": [], "thinking": "No relevant sections found."}
             
         answer = answer_question(question, context, model)
-        return {"answer": answer, "sources": titles}
+        return {"answer": answer, "sources": titles, "traversal_path": traversal_path, "thinking": thinking}
     except Exception as e:
         import traceback
         traceback.print_exc()

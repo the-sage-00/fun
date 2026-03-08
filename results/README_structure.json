@@ -112,7 +112,7 @@
         {
           "title": "Project Structure",
           "node_id": "0017",
-          "summary": "The partial document describes the structure of a project, outlining the organization of its source code. The project appears to be a web application with a dashboard, API, login, and registration pages. The dashboard is divided into several sections, including document management, analytics, exams, study plans, and settings. The project also includes AI-powered features, such as a chatbot, quiz interface, and study plans. The codebase is organized into several directories, including components, libraries, stores, and types, with specific folders for UI primitives, AI pipeline, PDF processing, database clients, and utilities.",
+          "summary": "The partial document describes the structure of a project, outlining the organization of its source code. The project appears to be a web application with a dashboard, API, login, and registration functionality. The dashboard includes features such as document management, AI-powered tools like summary, quiz, and chatbot, as well as analytics, exams, study plans, and user settings. The project also includes a library with AI pipeline, PDF processing, database clients, and utility functions, along with UI components, state management, and TypeScript types.",
           "line_num": 132
         },
         {

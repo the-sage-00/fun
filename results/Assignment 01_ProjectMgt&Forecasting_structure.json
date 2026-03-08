@@ -1,0 +1,192 @@
+{
+  "doc_name": "Assignment 01_ProjectMgt&Forecasting.pdf",
+  "structure": [
+    {
+      "title": "The Potamia Construction Co. (PCC) is developing plans to erect a new hospital building.",
+      "start_index": 1,
+      "end_index": 1,
+      "nodes": [
+        {
+          "title": "Prepare a n AON for the whole construction activity based on the information.",
+          "start_index": 1,
+          "end_index": 1,
+          "node_id": "0001",
+          "summary": "The partial document discusses two construction projects, one by Potamia Construction Co. for a new hospital building and the other by Hopkins Hospitality for building new motels. The main points covered include preparing an Activity on Node (AON) network, identifying the critical path and critical activities, and creating a Gantt Chart for each project. The document provides tables with project activities, durations, and predecessor relationships, and asks to draw the AON network and answer related questions."
+        },
+        {
+          "title": "Find out the critical path and critical activities for the same project.",
+          "start_index": 1,
+          "end_index": 1,
+          "node_id": "0002",
+          "summary": "Error"
+        },
+        {
+          "title": "Prep are a Gan tt Chart (Horizontal Bar Chart) for the whole project.",
+          "start_index": 1,
+          "end_index": 1,
+          "node_id": "0003",
+          "summary": "The partial document discusses two separate construction projects, one by Potamia Construction Co. for a new hospital building and the other by Hopkins Hospitality for building new motels. The main points covered include preparing an Activity on Node (AON) network, identifying the critical path and critical activities, and creating a Gantt Chart for each project. The document provides tables with project activities, durations, and predecessor relationships, and asks to draw the AON network and answer related questions for both projects."
+        }
+      ],
+      "node_id": "0000",
+      "summary": "Error"
+    },
+    {
+      "title": "Ross Hopkins, president of Hopkins Hospitality, has developed the tasks, durations, and predecessor relationships in the following table for building new motels.",
+      "start_index": 1,
+      "end_index": 1,
+      "nodes": [
+        {
+          "title": "Draw the AON network and answer the questions that follow.",
+          "start_index": 1,
+          "end_index": 2,
+          "node_id": "0005",
+          "summary": "Error"
+        }
+      ],
+      "node_id": "0004",
+      "summary": "Error"
+    },
+    {
+      "title": "Kimpel Products makes pizza ovens for commercial use.",
+      "start_index": 2,
+      "end_index": 2,
+      "nodes": [
+        {
+          "title": "What is the project completion date?",
+          "start_index": 2,
+          "end_index": 2,
+          "node_id": "0007",
+          "summary": "Error"
+        },
+        {
+          "title": "Crash this project to 10 weeks at the least cost assuming the indirect cost per day amounts to $300.",
+          "start_index": 2,
+          "end_index": 2,
+          "node_id": "0008",
+          "summary": "Error"
+        },
+        {
+          "title": "Crash this project to 7 weeks (which is the maximum it can be crashed) at the least cost assuming same indirect cost per day as in (b).",
+          "start_index": 2,
+          "end_index": 2,
+          "node_id": "0009",
+          "summary": "Error"
+        }
+      ],
+      "node_id": "0006",
+      "summary": "Error"
+    },
+    {
+      "title": "Lenovo uses the ZX-81 chip in some of its laptop computers.",
+      "start_index": 2,
+      "end_index": 2,
+      "nodes": [
+        {
+          "title": "Use a 2-month moving average on all the data and plot the averages and the prices.",
+          "start_index": 2,
+          "end_index": 2,
+          "node_id": "0011",
+          "summary": "Error"
+        },
+        {
+          "title": "Use a 3-month moving average and add the 3-month plot to the graph created in part (a).",
+          "start_index": 2,
+          "end_index": 2,
+          "node_id": "0012",
+          "summary": "Error"
+        },
+        {
+          "title": "Which one is better (using the mean absolute deviation): the 2-month average or the 3-month average?",
+          "start_index": 2,
+          "end_index": 2,
+          "node_id": "0013",
+          "summary": "Error"
+        },
+        {
+          "title": "Compute the forecasts for each month using exponential smoothing, with an initial forecast for January of $1.80.",
+          "start_index": 2,
+          "end_index": 3,
+          "node_id": "0014",
+          "summary": "Error"
+        }
+      ],
+      "node_id": "0010",
+      "summary": "Error"
+    },
+    {
+      "title": "A logistics company has been in business for four years and wants to develop monthly indices.",
+      "start_index": 3,
+      "end_index": 3,
+      "node_id": "0015",
+      "summary": "Error"
+    },
+    {
+      "title": "Income at the architectural firm Spraggins and Yunes for the period February to July was as follows:",
+      "start_index": 3,
+      "end_index": 3,
+      "nodes": [
+        {
+          "title": "Use trend-adjusted exponential smoothing to forecast the firm\u2019s August income.",
+          "start_index": 3,
+          "end_index": 3,
+          "node_id": "0017",
+          "summary": "Error"
+        },
+        {
+          "title": "Resolve the problem with \u03b1 = .1 and \u03b2 = .8.",
+          "start_index": 3,
+          "end_index": 3,
+          "node_id": "0018",
+          "summary": "Error"
+        }
+      ],
+      "node_id": "0016",
+      "summary": "Error"
+    },
+    {
+      "title": "The University athletic department works on its budget for the next year basketball attendance.",
+      "start_index": 3,
+      "end_index": 3,
+      "node_id": "0019",
+      "summary": "Error"
+    },
+    {
+      "title": "Dr. Lillian Fok, a New Orleans psychologist, specializes in treating patients who are agoraphobic (i.e., afraid to leave their homes).",
+      "start_index": 3,
+      "end_index": 4,
+      "node_id": "0020",
+      "summary": "Error"
+    },
+    {
+      "title": "The table below compares the accuracy of two forecasting methods used by company XYZ to forecast its monthly sales of one of its product.",
+      "start_index": 4,
+      "end_index": 4,
+      "node_id": "0021",
+      "summary": "Error"
+    },
+    {
+      "title": "Dave Fletcher, the general manager of North Carolina Engineering Corporation (NCEC), thinks that his firm\u2019s engineering services contracted to highway construction firms are directly related to the volume of highway construction business contracted with companies in his geographic area.",
+      "start_index": 4,
+      "end_index": 4,
+      "nodes": [
+        {
+          "title": "Using this data, develop a regression equation for predicting the level of demand of NCEC\u2019s services.",
+          "start_index": 4,
+          "end_index": 4,
+          "node_id": "0023",
+          "summary": "Error"
+        },
+        {
+          "title": "Determine the coefficient of correlation and the standard error of the estimate.",
+          "start_index": 4,
+          "end_index": 4,
+          "node_id": "0024",
+          "summary": "Error"
+        }
+      ],
+      "node_id": "0022",
+      "summary": "Error"
+    }
+  ]
+}
